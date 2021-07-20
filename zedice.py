@@ -55,4 +55,31 @@ class Rolled_dice:
 
 class Active_game:
     def __init__(self, server_id, channel_id, players = []) -> None:
+        self.location = (server_id, channel_id)
+        self.players = rng.shuffle(players)
+        self.current_player = self.players[0]
+        self.start_player = self.players[0]
+        self.scores = {}
+        self.endgame = False
+        for player in self.players:
+            self.scores[player] = 0
+
+    def _end_turn(self):
+        self.players.append(self.players.pop(0))
+    
+    def _set_current_player(self):
+        self.current_player = self.players[0]
+    
+    def _update_score(self, player, score_plus):
+        self.scores[player] += score_plus
+        if self.scores[player] >= 13:
+            return "Endgame"
+        else:
+            return "Continue"
+
+    def update_game(self, player, score_plus):
+        #Add new score
+        #Check for endgame
+        #Pass game to next player unless Endgame and next player is Start Player
+        #If Game Over announce winner and scores.
         pass
