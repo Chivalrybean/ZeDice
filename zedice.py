@@ -11,9 +11,11 @@ shotgun = "BLAM! :exploding_head:"
 #A standard green die, six-sided, weighted with brains, you can roll it and get a random side and it's icon.
 class Zedie:
     def __init__(self):
+        """Initialized as a die with specified possible sides to roll"""
         self.faces = [brain, brain, brain, feet, feet, shotgun]
     
-    def roll(self):
+    def roll(self): # TODO Need to set the die face as active, not just return the text of the side.
+        """Returns a random side of the die"""
         return self.faces[(rng.randint(0,5))]
     
     def __repr__(self) -> str:
@@ -39,24 +41,46 @@ class Yellow_zedie(Zedie):
 #Each active game needs it's own dice bag.
 class Dice_bag:
     def __init__(self):
+        """Bag starts with 13 dice, 3 reds, 4 yellow, nad 5 green"""
         self.contents = [Zedie(), Zedie(), Zedie(), Zedie(), Zedie(), Zedie(), Yellow_zedie(), Yellow_zedie(), Yellow_zedie(),
          Yellow_zedie(), Red_zedie(), Red_zedie(), Red_zedie()]
 
     def select_dice(self, amount):
+        """Draw any amount of dice from the bag and remove them"""
         draw = []
         i = 0
         while i < amount:
             draw.append(self.contents.pop(rng.randint(0,len(self.contents) - 1)).roll())
             i += 1
         return draw
+    
+    def return_dice(self, dice = []):
+        """Once a player's turn is done, the dice from the game's Rolled_dice.dice_pool need returned."""
+        for die in dice:
+            self.contents.append(die)
 
 #Which dice have been rolled for an active game. The initial roll is 3 dice from the dice bag.
 class Rolled_dice:
-    def __init__(self, inital_roll) -> None:
+    """Whichever rolled dice for a player's current turn. If shotgun_total >= 3, they gain no points and return all dice back into the bag."""
+    def __init__(self, inital_roll = []) -> None:
         self.dice_pool = inital_roll
         self.feet_total = 0
         self.brain_total = 0
-        self. blam_total = 0
+        self.shotgun_total = 0
+        self.update_totals(self.dice_pool)
+    
+    def access_dice_pool(self):
+        return self.dice_pool
+    
+    def add_dice(self, dice):
+        self.dice_pool.append(dice)
+
+    def update_totals(self, dice_pool):
+        #This will have to change, I need to put die instances in roll, not just results, then each die for it's roll.
+        self.feet_total = dice_pool.count(feet)
+        self.brain_total = dice_pool.count(brain)
+        self.shotgun_total = dice_pool.count(shotgun)
+
 
 #Discord classes
 
@@ -69,8 +93,9 @@ class Active_game:
         self.players = rng.shuffle(players)
         self.current_player = self.players[0]
         self.start_player = self.players[0]
-        self.scores = {}
-        self.endgame = False
+        self.dice_bag = Dice_bag()
+        self.scores = {} #player: score
+        self.endgame = False #each player gets a turn until current_player == start_player
         for player in self.players:
             self.scores[player] = 0
 
