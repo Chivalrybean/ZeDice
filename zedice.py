@@ -13,29 +13,31 @@ class Zedie:
     def __init__(self):
         """Initialized as a die with specified possible sides to roll"""
         self.faces = [brain, brain, brain, feet, feet, shotgun]
+        self.roll()
+        self.color = "Green"
     
     def roll(self): # TODO Need to set the die face as active, not just return the text of the side.
-        """Returns a random side of the die"""
-        return self.faces[(rng.randint(0,5))]
+        """Sets a random side of the die"""
+        self.active_side = self.faces[(rng.randint(0,5))]
     
     def __repr__(self) -> str:
-        return f"Green: {self.roll()}"
+        return f"{self.color}: {self.active_side}"
 
 #Red die, weighted with shotguns (more dangerous)
 class Red_zedie(Zedie):
     def __init__(self):
+        super().__init__() 
         self.faces = [brain, feet, feet, shotgun, shotgun, shotgun]
+        self.color = "Red"
 
-    def __repr__(self) -> str:
-        return f"Red: {self.roll()}"
 
 #Yellow die, equal sides.
 class Yellow_zedie(Zedie):
     def __init__(self):
+        super().__init__() 
         self.faces = [brain, brain, feet, feet, shotgun, shotgun]
+        self.color = "Yellow"
 
-    def __repr__(self) -> str:
-        return f"Yellow: {self.roll()}"
 
 #The game has 13 dice. You can draw any amount of dice, but typically it's 1 to 3. When a die is rolled, it's removed from the bag.
 #Each active game needs it's own dice bag.
@@ -50,7 +52,7 @@ class Dice_bag:
         draw = []
         i = 0
         while i < amount:
-            draw.append(self.contents.pop(rng.randint(0,len(self.contents) - 1)).roll())
+            draw.append(self.contents.pop(rng.randint(0,len(self.contents) - 1)))
             i += 1
         return draw
     
@@ -59,7 +61,8 @@ class Dice_bag:
         for die in dice:
             self.contents.append(die)
 
-#Which dice have been rolled for an active game. The initial roll is 3 dice from the dice bag.
+#Which dice have been rolled for an active game. The initial roll is 3 dice from the dice bag. Once turn is done, put dive_pool back into the
+#the game's dice bag and replace the instance of rolled dice with a new one. (maybe new dice bag too?)
 class Rolled_dice:
     """Whichever rolled dice for a player's current turn. If shotgun_total >= 3, they gain no points and return all dice back into the bag."""
     def __init__(self, inital_roll = []) -> None:
@@ -77,9 +80,10 @@ class Rolled_dice:
 
     def update_totals(self, dice_pool):
         #This will have to change, I need to put die instances in roll, not just results, then each die for it's roll.
-        self.feet_total = dice_pool.count(feet)
-        self.brain_total = dice_pool.count(brain)
-        self.shotgun_total = dice_pool.count(shotgun)
+        self.feet_total = [die.active_side for die in self.dice_pool()].count(feet) 
+        self.brain_total = [die.active_side for die in self.dice_pool()].count(brain) 
+        self.shotgun_total = [die.active_side for die in self.dice_pool()].count(shotgun) 
+    
 
 
 #Discord classes
@@ -94,6 +98,7 @@ class Active_game:
         self.current_player = self.players[0]
         self.start_player = self.players[0]
         self.dice_bag = Dice_bag()
+        self.rolled_dice = Rolled_dice(self.dice_bag.select_dice(3))
         self.scores = {} #player: score
         self.endgame = False #each player gets a turn until current_player == start_player
         for player in self.players:
@@ -115,6 +120,6 @@ class Active_game:
     def update_game(self, player, score_plus):
         #Add new score
         #Check for endgame
-        #Pass game to next player unless Endgame and next player is Start Player
+        #Pass game to next player unless Endgame and next player is Start Player (replace dice bag and rolled dice with fresh instances.)
         #If Game Over announce winner and scores.
         pass
